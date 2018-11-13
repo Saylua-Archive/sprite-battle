@@ -1,72 +1,112 @@
 import React, { Component } from 'react';
+
+import { BACKGROUND_LIST } from './helpers/backgroundList';
+import { randomChoice } from './helpers/utils';
+import { randomSprite } from './helpers/spriteHelper';
+import Battle from './Battle';
+import Den from './Den';
+import SpriteImage from './SpriteImage';
 import './App.css';
-import { BACKGROUNDLIST } from './backgroundList';
-import { randomChoice } from './utils';
-import { randomSprite } from './spriteHelper';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeSprite: randomSprite(),
-      opponent: randomSprite(),
-      area: randomChoice(BACKGROUNDLIST),
+      activeSprite: 0,
+      area: randomChoice(BACKGROUND_LIST),
+      sprites: [randomSprite()],
+      viewingDen: false,
     }
+    this.startBattle = this.startBattle.bind(this);
     this.placeholderAttack = this.placeholderAttack.bind(this);
+    this.endBattle = this.endBattle.bind(this);
+    this.catchOpponent = this.catchOpponent.bind(this);
+    this.viewDen = this.viewDen.bind(this);
+    this.switchSprite = this.switchSprite.bind(this);
+  }
+
+  componentDidMount() {
+    this.startBattle();
+  }
+
+  startBattle() {
+    this.setState({
+      opponent: randomSprite(),
+    });
+  }
+
+  endBattle() {
+    this.setState({
+      opponent: null,
+    });
+  }
+
+  catchOpponent() {
+    this.setState({
+      sprites: this.state.sprites.concat([this.state.opponent]),
+      opponent: null,
+    });
   }
 
   placeholderAttack() {
     const newOpponent = Object.assign({}, this.state.opponent);
     newOpponent.hp -= 10;
     if (newOpponent.hp <= 0) {
-      this.setState({ opponent: randomSprite() });
+      this.endBattle();
     } else {
       this.setState({ opponent: newOpponent });
     }
   }
 
+  viewDen() {
+    this.setState({
+      viewingDen: true,
+    });
+  }
+
+  switchSprite(i) {
+    this.setState({
+      viewingDen: false,
+      activeSprite: i,
+    });
+  }
+
+  getActiveSprite() {
+    return this.state.sprites[this.state.activeSprite];
+  }
+
   render() {
     return (
-      <div className="App">
-        <div
-          className="battle"
-          style={{
-            backgroundImage: `url(/img/backgrounds/${this.state.area}.jpg)`,
-          }}
-        >
-        <div className="sprite-battle-area">
-          <Portrait sprite={ this.state.activeSprite } />
-          <Portrait sprite={ this.state.opponent } />
-        </div>
-        <div className="moves">
-          <div className="sprite-moves">
-            <button onClick={ this.placeholderAttack }>Flail</button>
-            <button onClick={ this.placeholderAttack }>Slam</button>
-            <button onClick={ this.placeholderAttack }>Bap</button>
-            <button onClick={ this.placeholderAttack }>Punch</button>
-          </div>
-          <div className="player-moves">
-            <button>Catch</button>
-            <button>Flee</button>
-          </div>
-        </div>
+      <div className="App" style={{
+        backgroundImage: `url(/img/backgrounds/${this.state.area}.jpg)`,
+      }}>
+        <SpriteImage sprite={this.getActiveSprite()} />
+        <button onClick={ this.startBattle }>
+          Keep adventuring!
+        </button>
+        <button onClick={ this.viewDen }>
+          Switch sprite
+        </button>
+        { this.state.viewingDen ?
+          <Den
+            sprites={ this.state.sprites }
+            switchSprite={ this.switchSprite }
+          />
+          : ''
+        }
+        { this.state.opponent ?
+          <Battle
+            area={ this.state.area }
+            activeSprite={ this.getActiveSprite() }
+            opponent={ this.state.opponent }
+            onAttack={ this.placeholderAttack }
+            onFlee={ this.endBattle }
+            onCatch={ this.catchOpponent }
+          /> : ''
+        }
       </div>
-    </div>
     );
   }
-}
-
-function Portrait(props) {
-  return (
-    <div className="portrait">
-    <img
-        src={`/img/sprites/${props.sprite.species}/${props.sprite.variant}.png`}
-        alt={`${props.sprite.name} the ${props.sprite.variant} ${props.sprite.species}`}
-        title={`${props.sprite.name} the ${props.sprite.variant} ${props.sprite.species}`}
-      />
-    <div>HP: {props.sprite.hp}</div>
-    </div>
-  )
 }
 
 export default App;

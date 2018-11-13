@@ -1,4 +1,4 @@
-export const BACKGROUNDLIST = [
+export const BACKGROUND_LIST = [
   'glowy_pond',
   'jungle',
   'mushroom',

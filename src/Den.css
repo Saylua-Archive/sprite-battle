@@ -1,0 +1,22 @@
+.den {
+  width: 90%;
+  height: 90%;
+  position: fixed;
+  top: 5%;
+  left: 5%;
+  background: white;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.den-pet {
+  width: 20%;
+  cursor: pointer;
+  transition: linear background 0.2s;
+  padding: 10px;
+}
+
+.den-pet:hover {
+  background: #E1F5FE;
+}

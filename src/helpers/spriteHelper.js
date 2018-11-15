@@ -10,6 +10,7 @@ export function randomSprite() {
     species: species,
     variant: variant,
     hp: 100,
+    maxhp: 100,
   }
   return sprite;
 }

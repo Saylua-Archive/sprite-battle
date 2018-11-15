@@ -92,7 +92,7 @@ class App extends Component {
             sprites={ this.state.sprites }
             switchSprite={ this.switchSprite }
           />
-          : ''
+        : ''
         }
         { this.state.opponent ?
           <Battle

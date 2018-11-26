@@ -8,6 +8,7 @@ class Den extends Component {
       <div
         className="den"
       >
+        <h2 className='den-header'>Choose a sprite!</h2>
         {this.props.sprites.map((sprite, i) =>
           <div
             className="den-pet"
@@ -17,7 +18,7 @@ class Den extends Component {
             <SpriteImage
               sprite={ sprite }
             />
-            { sprite.name } the { sprite.variant }
+            { sprite.name } the lv. { sprite.level } { sprite.variant } { sprite.species }
           </div>
         )}
       </div>

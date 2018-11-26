@@ -16,6 +16,7 @@ class App extends Component {
       area: randomChoice(BACKGROUND_LIST),
       sprites: [randomSprite()],
       viewingDen: false,
+      continueTexts: ["Begin!"],
     }
     this.startBattle = this.startBattle.bind(this);
     this.placeholderAttack = this.placeholderAttack.bind(this);
@@ -23,6 +24,9 @@ class App extends Component {
     this.catchOpponent = this.catchOpponent.bind(this);
     this.viewDen = this.viewDen.bind(this);
     this.switchSprite = this.switchSprite.bind(this);
+    this.levelUp = this.levelUp.bind(this);
+    this.continue = this.continue.bind(this);
+    this.flee = this.flee.bind(this);
   }
 
   componentDidMount() {
@@ -35,6 +39,23 @@ class App extends Component {
     });
   }
 
+  flee() {
+    const escaped = Math.random() * 1.5 > this.state.opponent.hp / this.state.opponent.maxhp;
+    const newContinueTexts = this.state.continueTexts;
+    if (escaped) {
+      newContinueTexts.unshift(`You escaped from ${this.state.opponent.name}!`);
+      this.setState({
+        opponent: null,
+        continueTexts: newContinueTexts,
+      });
+    } else {
+      newContinueTexts.unshift(`You failed to escape!`);
+      this.setState({
+        continueTexts: newContinueTexts,
+      });
+    }
+  }
+
   endBattle() {
     this.setState({
       opponent: null,
@@ -42,20 +63,51 @@ class App extends Component {
   }
 
   catchOpponent() {
-    this.setState({
-      sprites: this.state.sprites.concat([this.state.opponent]),
-      opponent: null,
-    });
+    const captured = Math.random() / 2 > this.state.opponent.hp / this.state.opponent.maxhp;
+    const newContinueTexts = this.state.continueTexts;
+    if (captured) {
+      newContinueTexts.unshift(`${this.state.opponent.name} was caught!`);
+      const newSprites = this.state.sprites.concat([this.state.opponent]);
+      this.setState({
+        sprites: newSprites,
+        opponent: null,
+        continueTexts: newContinueTexts,
+      });
+    } else {
+      newContinueTexts.unshift(`You couldn't catch ${this.state.opponent.name}!`);
+      this.setState({
+        continueTexts: newContinueTexts,
+      });
+    }
   }
 
-  placeholderAttack() {
+  placeholderAttack(attack) {
     const newOpponent = Object.assign({}, this.state.opponent);
-    newOpponent.hp -= 10;
-    if (newOpponent.hp <= 0) {
+    const damage = 20 * this.getActiveSprite().level;
+    newOpponent.hp -= damage;
+    const levelUpTime = Math.random() < ((newOpponent.level / this.getActiveSprite().level) / 2);
+    const newContinueTexts = this.state.continueTexts;
+    newContinueTexts.unshift(`${this.getActiveSprite().name} used ${attack.name} for ${damage} damage!`);
+    if (newOpponent.hp <= 0 && levelUpTime) {
+      this.levelUp();
+    } else if (newOpponent.hp <= 0) {
       this.endBattle();
     } else {
-      this.setState({ opponent: newOpponent });
+      this.setState({ opponent: newOpponent, continueTexts: newContinueTexts });
     }
+  }
+
+  opponentAttack(attack) {
+    const damage = 10;
+  }
+
+  levelUp() {
+    const newSprite = Object.assign({}, this.getActiveSprite());
+    newSprite.level += 1;
+    const newSprites = this.state.sprites.slice();
+    newSprites[this.state.activeSprite] = newSprite;
+    this.setState({ sprites: newSprites });
+    this.endBattle();
   }
 
   viewDen() {
@@ -73,6 +125,13 @@ class App extends Component {
 
   getActiveSprite() {
     return this.state.sprites[this.state.activeSprite];
+  }
+
+  continue() {
+    const newTexts = this.state.continueTexts.slice(1);
+    this.setState({
+      continueTexts: newTexts,
+    });
   }
 
   render() {
@@ -94,14 +153,16 @@ class App extends Component {
           />
         : ''
         }
-        { this.state.opponent ?
+        { this.state.opponent || this.state.continueTexts.length > 0 ?
           <Battle
             area={ this.state.area }
             activeSprite={ this.getActiveSprite() }
             opponent={ this.state.opponent }
             onAttack={ this.placeholderAttack }
-            onFlee={ this.endBattle }
+            onFlee={ this.flee }
             onCatch={ this.catchOpponent }
+            continueTexts= { this.state.continueTexts }
+            continue = { this.continue }
           /> : ''
         }
       </div>

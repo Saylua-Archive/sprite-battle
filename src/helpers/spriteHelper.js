@@ -11,6 +11,7 @@ export function randomSprite() {
     variant: variant,
     hp: 100,
     maxhp: 100,
+    level: 1,
   }
   return sprite;
 }

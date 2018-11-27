@@ -5,14 +5,14 @@ export const MOVESLIST = [
   },
   {
     name: 'slam',
-    damage: 10,
+    damage: 20,
   },
   {
     name: 'bap',
-    damage: 10,
+    damage: 2,
   },
   {
     name: 'punch',
-    damage: 10,
+    damage: 15,
   },
 ];

@@ -17,9 +17,11 @@ class App extends Component {
       sprites: [randomSprite()],
       viewingDen: false,
       continueTexts: ["Begin!"],
+      playerTurn: true,
     }
     this.startBattle = this.startBattle.bind(this);
     this.placeholderAttack = this.placeholderAttack.bind(this);
+    this.opponentAttack = this.opponentAttack.bind(this);
     this.endBattle = this.endBattle.bind(this);
     this.catchOpponent = this.catchOpponent.bind(this);
     this.viewDen = this.viewDen.bind(this);
@@ -27,6 +29,7 @@ class App extends Component {
     this.levelUp = this.levelUp.bind(this);
     this.continue = this.continue.bind(this);
     this.flee = this.flee.bind(this);
+    this.clickAfterWait = this.clickAfterWait.bind(this);
   }
 
   componentDidMount() {
@@ -34,9 +37,23 @@ class App extends Component {
   }
 
   startBattle() {
+    const newActiveSprite = this.getActiveSprite();
+    const newSprites = this.state.sprites.slice();
+    newActiveSprite.hp = newActiveSprite.maxhp;
+    newSprites[this.state.activeSprite] = newActiveSprite;
     this.setState({
       opponent: randomSprite(),
+      sprites: newSprites,
     });
+  }
+
+  clickAfterWait(id) {
+    setTimeout(function(){
+      const found = document.getElementById(id);
+      if (found) {
+        found.click();
+      }
+    }, 1500);
   }
 
   flee() {
@@ -52,11 +69,14 @@ class App extends Component {
       newContinueTexts.unshift(`You failed to escape!`);
       this.setState({
         continueTexts: newContinueTexts,
+        playerTurn: false,
       });
     }
   }
 
   endBattle() {
+    const newContinueTexts = this.state.continueTexts;
+    newContinueTexts.push(`${this.state.opponent.name} is defeated!`);
     this.setState({
       opponent: null,
     });
@@ -77,13 +97,15 @@ class App extends Component {
       newContinueTexts.unshift(`You couldn't catch ${this.state.opponent.name}!`);
       this.setState({
         continueTexts: newContinueTexts,
+        playerTurn: false,
       });
     }
   }
 
   placeholderAttack(attack) {
     const newOpponent = Object.assign({}, this.state.opponent);
-    const damage = 20 * this.getActiveSprite().level;
+    let damage = attack.damage * this.getActiveSprite().level;
+    damage = Math.floor(damage * (Math.random() + 0.5));
     newOpponent.hp -= damage;
     const levelUpTime = Math.random() < ((newOpponent.level / this.getActiveSprite().level) / 2);
     const newContinueTexts = this.state.continueTexts;
@@ -93,12 +115,21 @@ class App extends Component {
     } else if (newOpponent.hp <= 0) {
       this.endBattle();
     } else {
-      this.setState({ opponent: newOpponent, continueTexts: newContinueTexts });
+      this.setState({ opponent: newOpponent, continueTexts: newContinueTexts, playerTurn: false });
     }
   }
 
-  opponentAttack(attack) {
-    const damage = 10;
+  opponentAttack() {
+    const attack = randomChoice(this.state.opponent.moves);
+    let opponentDamage = attack.damage;
+    opponentDamage = Math.floor(opponentDamage * (Math.random() + 0.5));
+    const newActiveSprite = this.getActiveSprite();
+    const newContinueTexts = this.state.continueTexts.slice(1);
+    newContinueTexts.unshift(`${this.state.opponent.name} used ${attack.name} for ${opponentDamage} damage!`);
+    newActiveSprite.hp -= opponentDamage;
+    const newSprites = this.state.sprites.slice();
+    newSprites[this.state.activeSprite] = newActiveSprite;
+    this.setState({ sprites: newSprites, continueTexts: newContinueTexts, playerTurn: true });
   }
 
   levelUp() {
@@ -129,9 +160,13 @@ class App extends Component {
 
   continue() {
     const newTexts = this.state.continueTexts.slice(1);
-    this.setState({
-      continueTexts: newTexts,
-    });
+    if (newTexts.length < 1 && !this.state.playerTurn) {
+      this.opponentAttack();
+    } else {
+      this.setState({
+        continueTexts: newTexts,
+      });
+    }
   }
 
   render() {
@@ -159,10 +194,12 @@ class App extends Component {
             activeSprite={ this.getActiveSprite() }
             opponent={ this.state.opponent }
             onAttack={ this.placeholderAttack }
+            opponentAttack={ this.opponentAttack }
             onFlee={ this.flee }
             onCatch={ this.catchOpponent }
             continueTexts= { this.state.continueTexts }
             continue = { this.continue }
+            clickAfterWait = { this.clickAfterWait }
           /> : ''
         }
       </div>

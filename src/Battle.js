@@ -6,6 +6,8 @@ import { capitalizeFirst } from './helpers/utils';
 
 class Battle extends Component {
   render() {
+    const randomID = Math.random().toString();
+    this.props.clickAfterWait(randomID);
     return (
       <div
         className="battle"
@@ -19,7 +21,7 @@ class Battle extends Component {
         </div>
         { this.props.continueTexts.length > 0 ?
           <div className="moves" onClick={ this.props.continue }>
-            <button className="continue-text">{ this.props.continueTexts[0] }</button>
+            <button id={ randomID } className="continue-text">{ this.props.continueTexts[0] }</button>
           </div>
         :
         <div className="moves">
